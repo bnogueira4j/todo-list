@@ -25,8 +25,18 @@ public class TodoItem {
     private LocalDateTime dataHora;
     private LocalDate prazoFinal;
 
-
     public TodoItem(){
-        dataHora = LocalDateTime.now();
+        this.concluida = false;
+        this.dataHora = LocalDateTime.now();
+    }
+
+    public TodoItem(String titulo,
+                    String descricao,
+                    LocalDate prazoFinal){
+        this.titulo = titulo;
+        this.descricao = descricao;
+        this.prazoFinal = prazoFinal;
+        this.concluida = false;
+        this.dataHora = LocalDateTime.now();
     }
 }
