@@ -6,8 +6,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @RestController("/todo")
 public class TodoController {
@@ -50,12 +52,15 @@ public class TodoController {
     public ResponseEntity<TodoItem> alterarStatus(
             @PathVariable Long id,
             @RequestBody AlteraStatusRequest request) throws Exception {
+
         // Buscamos pelo metodo findById que retorna um Optional<TodoItem> pois o mesmo pode nao existir no banco
         Optional<TodoItem> optionalTodoItem = todoItemRepository.findById(id);
+
         // Verificamos se existe valor dentro do Optional
         if(optionalTodoItem.isPresent()) {
             // Se existir vamos fazer o get() para tirar o valor de dentro do optional
             TodoItem todoItemModificado = optionalTodoItem.get();
+
             // verificamos se um das tres variaveis que esperamos foi passada para ser atualizada
             if(request.status() != null) todoItemModificado.setConcluida(request.status());
             if(request.titulo() != null) todoItemModificado.setTitulo(request.titulo());
@@ -67,6 +72,34 @@ public class TodoController {
 
         } else {
             // Caso nao encontramos na valor no Optional retornamos o codigo 404 - nao encontrado
+            return ResponseEntity.notFound().build();
+        }
+
+    }
+
+    @PutMapping("/todo-item/{id}")
+    public ResponseEntity<TodoItem> alteraTodoItemCompleto(
+            @PathVariable Long id,
+            @RequestBody AlteraTodoItemCompletoRequest request
+    ) {
+        // Buscamos pelo metodo findById que retorna um Optional<TodoItem> pois o mesmo pode nao existir no banco
+        Optional<TodoItem> optionalTodoItem = todoItemRepository.findById(id);
+
+        // Verificamos se existe valor dentro do Optional
+        if(optionalTodoItem.isPresent()) {
+            TodoItem todoItemExistente = optionalTodoItem.get();
+
+            todoItemExistente.setTitulo( request.getTitulo() );
+            todoItemExistente.setDescricao( request.getDescricao() );
+            todoItemExistente.setConcluida( request.getConcluida() );
+            todoItemExistente.setPrazoFinal( request.getPrazoFinal() );
+            todoItemExistente.setDataHoraAtualizacao( LocalDateTime.now());
+
+
+            TodoItem todoItemSalvo = todoItemRepository.save(todoItemExistente);
+
+            return ResponseEntity.ok(todoItemSalvo);
+        } else {
             return ResponseEntity.notFound().build();
         }
     }
