@@ -46,6 +46,12 @@ public class TodoController {
         return listaComTodos;
     }
 
+    @GetMapping(value = "/todo-item", params = {"titulo"})
+    public List<TodoItem> buscarPorFiltro(@RequestParam String titulo){
+        String tituloSemEspacos = titulo.replaceAll("\\s", "");
+        return todoItemRepository.findByTituloQuery(tituloSemEspacos);
+    }
+
     //Criamos uma nova rota para atualizar partes especificas do nosso recurso /todo-item
     // identificando pelo path variable id
     @PatchMapping("/todo-item/{id}")
@@ -89,12 +95,11 @@ public class TodoController {
         if(optionalTodoItem.isPresent()) {
             TodoItem todoItemExistente = optionalTodoItem.get();
 
-            todoItemExistente.setTitulo( request.getTitulo() );
-            todoItemExistente.setDescricao( request.getDescricao() );
-            todoItemExistente.setConcluida( request.getConcluida() );
-            todoItemExistente.setPrazoFinal( request.getPrazoFinal() );
+            todoItemExistente.setTitulo( request.titulo() );
+            todoItemExistente.setDescricao( request.descricao() );
+            todoItemExistente.setConcluida( request.concluida() );
+            todoItemExistente.setPrazoFinal( request.prazoFinal() );
             todoItemExistente.setDataHoraAtualizacao( LocalDateTime.now());
-
 
             TodoItem todoItemSalvo = todoItemRepository.save(todoItemExistente);
 

@@ -12,16 +12,14 @@ public record AlteraTodoItemCompletoRequest(
         String titulo,
         String descricao,
         Boolean concluida,
-        LocalDateTime dataHora,
         LocalDate prazoFinal
 ) {
 
-    public AlteraTodoItemCompletoRequest(String titulo, String descricao, Boolean concluida, LocalDateTime dataHora, LocalDate prazoFinal) {
+    public AlteraTodoItemCompletoRequest(String titulo, String descricao, Boolean concluida, LocalDate prazoFinal) {
         this.titulo = Objects.requireNonNull(titulo, "Titulo é obrigatorio");
-        this.descricao = Objects.requireNonNull(descricao);
-        this.concluida = Objects.requireNonNull(concluida);
-        this.dataHora = Objects.requireNonNull(dataHora);
-        this.prazoFinal = Objects.requireNonNull(prazoFinal);
+        this.descricao = Objects.requireNonNull(descricao, "Descricao é obrigatorio");
+        this.concluida = Objects.requireNonNull(concluida, "Concluida é obrigatorio");
+        this.prazoFinal = Objects.requireNonNull(prazoFinal, "Prazo Final é obrigatorio");
     }
 
 /*    public <T>T myNotNull(T objeto) {
