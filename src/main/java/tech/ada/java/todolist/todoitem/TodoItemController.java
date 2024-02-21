@@ -1,27 +1,34 @@
-package tech.ada.java.todolist.domain;
+package tech.ada.java.todolist.todoitem;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import tech.ada.java.todolist.todolist.TodoList;
+import tech.ada.java.todolist.todolist.TodoListRepository;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 @RestController("/todo")
-public class TodoController {
+public class TodoItemController {
 
 
-    private final TodoItemRepository todoItemRepository; // nossa depedencia do repositorio
+    private final TodoItemRepository itemRepository; // nossa depedencia do repositorio
     private final ModelMapper modelMapper; // nova dependencia modelmapper
 
+    private final TodoListRepository listRepository; // nossa depedencia do repositorio
+
     @Autowired // Injetamos as dependencia vira construtor com padrao inversao de dependencia
-    public TodoController(TodoItemRepository todoItemRepository, ModelMapper modelMapper) {
-        this.todoItemRepository = todoItemRepository;
+    public TodoItemController(TodoItemRepository itemRepository, ModelMapper modelMapper, TodoListRepository listRepository) {
+        this.itemRepository = itemRepository;
         this.modelMapper = modelMapper;
+        this.listRepository = listRepository;
     }
 
     @PostMapping("/todo-item")
@@ -34,7 +41,7 @@ public class TodoController {
         TodoItem todoItemConvertido = modelMapper.map(request, TodoItem.class);
 
         //Vamos salvar a entidade criada no repositorio
-        TodoItem novoTodoItem = todoItemRepository.save(todoItemConvertido);
+        TodoItem novoTodoItem = itemRepository.save(todoItemConvertido);
 
         //Retornamos o status 201 com o body "corpo da resposta" o novoTodoItem que foi criado pelo repositorio
         return ResponseEntity.status(HttpStatus.CREATED).body(novoTodoItem);
@@ -42,14 +49,26 @@ public class TodoController {
 
     @GetMapping("/todo-item")
     public List<TodoItem> buscarTodos(){
-        List<TodoItem> listaComTodos = todoItemRepository.findAll();
+        List<TodoItem> listaComTodos = itemRepository.findAll();
         return listaComTodos;
     }
 
-    @GetMapping(value = "/todo-item", params = {"titulo"})
-    public List<TodoItem> buscarPorFiltro(@RequestParam String titulo){
-        String tituloSemEspacos = titulo.replaceAll("\\s", "");
-        return todoItemRepository.findByTituloQuery(tituloSemEspacos);
+    @GetMapping(value = "/todo-item", params = {"id"})
+    public ResponseEntity<TodoItemResponse> buscarPorFiltro(@RequestParam Long id){
+        Optional<TodoItem> optionalItem = itemRepository.findById(id);
+        if(optionalItem.isPresent()){
+            TodoItem todoItem = optionalItem.get();
+
+            TodoItemResponse response = new TodoItemResponse();
+            response.setTitulo(todoItem.getTitulo());
+            response.setDescricao(todoItem.getDescricao());
+            response.setConcluida(todoItem.getConcluida());
+            response.setPrazoFinal(todoItem.getPrazoFinal());
+
+            return ResponseEntity.ok().build();
+        }
+
+        return ResponseEntity.notFound().build();
     }
 
     //Criamos uma nova rota para atualizar partes especificas do nosso recurso /todo-item
@@ -60,7 +79,7 @@ public class TodoController {
             @RequestBody AlteraStatusRequest request) throws Exception {
 
         // Buscamos pelo metodo findById que retorna um Optional<TodoItem> pois o mesmo pode nao existir no banco
-        Optional<TodoItem> optionalTodoItem = todoItemRepository.findById(id);
+        Optional<TodoItem> optionalTodoItem = itemRepository.findById(id);
 
         // Verificamos se existe valor dentro do Optional
         if(optionalTodoItem.isPresent()) {
@@ -73,7 +92,7 @@ public class TodoController {
             if(request.descricao() != null) todoItemModificado.setDescricao(request.descricao());
 
             //Depois de atualizar o que precisamos, vamos salvar
-            TodoItem todoItemSalvo =  todoItemRepository.save(todoItemModificado);
+            TodoItem todoItemSalvo =  itemRepository.save(todoItemModificado);
             return ResponseEntity.ok(todoItemSalvo);
 
         } else {
@@ -89,7 +108,7 @@ public class TodoController {
             @RequestBody AlteraTodoItemCompletoRequest request
     ) {
         // Buscamos pelo metodo findById que retorna um Optional<TodoItem> pois o mesmo pode nao existir no banco
-        Optional<TodoItem> optionalTodoItem = todoItemRepository.findById(id);
+        Optional<TodoItem> optionalTodoItem = itemRepository.findById(id);
 
         // Verificamos se existe valor dentro do Optional
         if(optionalTodoItem.isPresent()) {
@@ -101,11 +120,35 @@ public class TodoController {
             todoItemExistente.setPrazoFinal( request.prazoFinal() );
             todoItemExistente.setDataHoraAtualizacao( LocalDateTime.now());
 
-            TodoItem todoItemSalvo = todoItemRepository.save(todoItemExistente);
+            TodoItem todoItemSalvo = itemRepository.save(todoItemExistente);
 
             return ResponseEntity.ok(todoItemSalvo);
         } else {
             return ResponseEntity.notFound().build();
         }
+    }
+
+    @PostMapping("/todo-item/lista")
+    public ResponseEntity<TodoItem> colocarItemNaLista(@RequestBody ItemAdicionaListaRequest request) {
+
+        //Vou buscar o item baseado pelo itemId
+        TodoItem ItemRecuperado = itemRepository.findById(request.getIdItem()).get();
+        // Vou buscar a lista pelo listId
+        TodoList listaRecuperada = listRepository.findById(request.getIdLista()).get();
+
+        listaRecuperada.getListaItems().add(ItemRecuperado);
+        listRepository.save(listaRecuperada);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(ItemRecuperado);
+    }
+
+    @Setter
+    @Getter
+    public class TodoItemResponse {
+        private String titulo;
+        private String descricao;
+        private Boolean concluida;
+        private LocalDate prazoFinal;
+        private String lista;
     }
 }

@@ -1,8 +1,9 @@
-package tech.ada.java.todolist.domain;
+package tech.ada.java.todolist.todoitem;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
+import tech.ada.java.todolist.todolist.TodoList;
 
 import java.util.List;
 
@@ -16,4 +17,5 @@ public interface TodoItemRepository extends JpaRepository<TodoItem, Long> {
 
     @Query(value = "SELECT * FROM todo_item WHERE titulo = ?1", nativeQuery = true)
     List<TodoItem> findByTituloQueryNativa(String titulo);
+
 }

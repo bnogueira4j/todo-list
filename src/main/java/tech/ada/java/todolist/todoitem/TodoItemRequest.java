@@ -1,8 +1,5 @@
-package tech.ada.java.todolist.domain;
+package tech.ada.java.todolist.todoitem;
 
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
 import lombok.Getter;
 
 import java.time.LocalDate;
