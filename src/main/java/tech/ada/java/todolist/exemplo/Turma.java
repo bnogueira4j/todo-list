@@ -13,6 +13,6 @@ public class Turma {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String nome;
-    @OneToMany
+    @OneToMany(mappedBy = "turma")
     private List<Aluno> alunos;
 }
