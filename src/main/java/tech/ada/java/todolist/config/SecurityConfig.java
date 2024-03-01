@@ -32,12 +32,12 @@ public class SecurityConfig {
                             auth.requestMatchers(HttpMethod.GET, "/aluno").permitAll();
                             //Requer autenticação para todas as outras requisições.
                             auth.anyRequest().authenticated();
+
                         }
                 )
                 //configura as opções padrão para a autenticação básica: name e password
                 .httpBasic(Customizer.withDefaults());
-
-        //Retorna a cadeia de filtros de segurança configurada
+        //Retorna a cadeia de filtros de segurança configurad
         return http.build();
     }
 }
